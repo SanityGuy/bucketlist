@@ -86,7 +86,7 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white antialiased">
 
-    <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-50 transition-colors duration-200">
+    <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 transition-colors duration-200">
         <div class="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-3">
             <span class="text-lg sm:text-xl font-bold tracking-tight text-white select-none shrink-0">BucketList<span class="text-blue-500">.io</span></span>
             
@@ -141,7 +141,7 @@
                     <div>
                         <label data-i18n="username_label" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Username</label>
                         <div class="relative">
-                            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
                             <input type="text" id="authUsername" required placeholder="Enter username" data-i18n-placeholder="username_placeholder" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg pl-10 pr-4 min-h-[44px] text-slate-100 placeholder-slate-600 outline-none transition-all duration-200">
                         </div>
                     </div>
@@ -149,8 +149,11 @@
                     <div>
                         <label data-i18n="password_label" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
                         <div class="relative">
-                            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="password" id="authPassword" required placeholder="Enter password" data-i18n-placeholder="password_placeholder" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg pl-10 pr-4 min-h-[44px] text-slate-100 placeholder-slate-600 outline-none transition-all duration-200">
+                            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm pointer-events-none"></i>
+                            <input type="password" id="authPassword" required placeholder="Enter password" data-i18n-placeholder="password_placeholder" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg pl-10 pr-12 min-h-[44px] text-slate-100 placeholder-slate-600 outline-none transition-all duration-200">
+                            <button type="button" id="togglePasswordBtn" class="absolute right-1 top-1/2 -translate-y-1/2 min-h-[40px] min-w-[40px] flex items-center justify-center text-slate-500 hover:text-blue-400 transition-colors duration-200 rounded-md" aria-label="Toggle password visibility">
+                                <i id="togglePasswordIcon" class="fa-solid fa-eye text-sm transition-transform duration-200 hover:scale-110"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -162,8 +165,19 @@
             </div>
         </div>
 
-        <div id="appView" class="hidden w-full max-w-2xl mx-auto animate-pop-in">
-            <div class="mb-5">
+        <div id="appView" class="hidden w-full max-w-2xl mx-auto animate-pop-in space-y-4">
+            
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-5 shadow-xl">
+                <div class="flex items-center justify-between text-xs sm:text-sm font-semibold mb-2">
+                    <span data-i18n="progress_title" class="text-slate-300">Goal Completion Progress</span>
+                    <span id="progressText" class="text-blue-400 font-mono font-bold">0%</span>
+                </div>
+                <div class="w-full bg-slate-950 border border-slate-800 rounded-full h-3 p-0.5 overflow-hidden">
+                    <div id="progressBar" class="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out w-0"></div>
+                </div>
+            </div>
+
+            <div>
                 <form id="addGoalForm" class="flex flex-col sm:flex-row gap-2.5">
                     <input type="text" id="goalInput" placeholder="Add a new bucket list goal..." data-i18n-placeholder="add_placeholder" class="flex-1 bg-slate-900 border border-slate-800 focus:border-blue-500 text-slate-100 placeholder-slate-500 px-4 min-h-[48px] rounded-xl outline-none transition-all duration-200">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-medium px-6 min-h-[48px] rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shrink-0 shadow-lg shadow-blue-600/10 text-xs sm:text-sm">
@@ -192,10 +206,14 @@
                     <p data-i18n="empty_sub" class="text-slate-600 text-xs mt-1">Start planning your dream experiences above!</p>
                 </div>
 
-                <div class="p-3 border-t border-slate-800/60 bg-slate-950/40 flex justify-end">
-                    <button id="clearCompletedBtn" type="button" class="text-xs text-slate-500 hover:text-red-400 font-medium transition-colors duration-200 flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-md hover:bg-slate-800/50">
-                        <i class="fa-solid fa-trash-can text-[11px]"></i>
+                <div class="p-3 border-t border-slate-800/60 bg-slate-950/40 flex flex-wrap items-center justify-between gap-2">
+                    <button id="clearCompletedBtn" type="button" class="text-xs text-slate-500 hover:text-amber-400 font-medium transition-colors duration-200 flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-md hover:bg-slate-800/50">
+                        <i class="fa-solid fa-check-double text-[11px]"></i>
                         <span data-i18n="clear_completed">Clear Completed</span>
+                    </button>
+                    <button id="clearAllBtn" type="button" class="text-xs text-slate-500 hover:text-red-400 font-medium transition-colors duration-200 flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-md hover:bg-slate-800/50">
+                        <i class="fa-solid fa-trash-can text-[11px]"></i>
+                        <span data-i18n="clear_all">Clear All</span>
                     </button>
                 </div>
             </div>
@@ -203,16 +221,30 @@
 
     </main>
 
+    <div id="confirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl animate-pop-in space-y-4">
+            <div class="w-12 h-12 bg-red-950/50 border border-red-800/60 text-red-400 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 data-i18n="confirm_clear_all_title" class="text-lg font-bold text-white">Clear All Goals?</h3>
+            <p data-i18n="confirm_clear_all_msg" class="text-xs text-slate-400 leading-relaxed">Are you sure you want to remove all goals from your bucket list? This action cannot be undone.</p>
+            <div class="flex items-center gap-3 pt-2">
+                <button id="cancelClearAllBtn" type="button" data-i18n="cancel_btn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2.5 px-4 min-h-[44px] rounded-xl text-xs sm:text-sm transition-all duration-200 active:scale-[0.98]">Cancel</button>
+                <button id="confirmClearAllBtn" type="button" data-i18n="confirm_btn" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-medium py-2.5 px-4 min-h-[44px] rounded-xl text-xs sm:text-sm transition-all duration-200 active:scale-[0.98]">Yes, Clear All</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-slate-950 border-t border-slate-900 py-5 text-xs text-slate-500 transition-colors duration-200">
         <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <p data-i18n="copyright">&copy; 2026 BucketList.io. All rights reserved.</p>
             <div class="flex items-center gap-5">
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors duration-200 flex items-center gap-1.5 py-1 min-h-[36px]">
+                <a href="https://github.com/SanityGuy" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors duration-200 flex items-center gap-1.5 py-1 min-h-[36px]">
                     <i class="fa-brands fa-github text-sm"></i>
                     <span data-i18n="github_link">View my GitHub</span>
                 </a>
-                <a href="https://saweria.co" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors duration-200 flex items-center gap-1.5 py-1 min-h-[36px]">
-                    <i class="fa-solid fa-heart text-red-500 text-xs"></i>
+                <a href="https://saweria.co/SouyanDev" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors duration-200 flex items-center gap-1.5 py-1 min-h-[36px]">
+                    <i class="fa-solid fa-heart text-blue-500 text-xs"></i>
                     <span data-i18n="saweria_link">Support me via Saweria.co</span>
                 </a>
             </div>
@@ -230,14 +262,18 @@
                 username_placeholder: "Enter username",
                 password_label: "Password",
                 password_placeholder: "Enter password",
+                show_password: "Show password",
+                hide_password: "Hide password",
                 login_btn: "Log In",
-                register_btn: "Register",
+                register_btn: "Register Account",
                 add_placeholder: "Add a new bucket list goal...",
                 add_btn: "Add Goal",
+                progress_title: "Goal Completion Progress",
                 filter_all: "All",
                 filter_active: "Active",
                 filter_completed: "Completed",
                 clear_completed: "Clear Completed",
+                clear_all: "Clear All",
                 items_left_singular: "item left",
                 items_left_plural: "items left",
                 empty_title: "Your bucket list is empty",
@@ -250,6 +286,10 @@
                 err_invalid_login: "Invalid username or password.",
                 copyright: "© 2026 BucketList.io. All rights reserved.",
                 lang_system: "🌐 System (Auto)",
+                confirm_clear_all_title: "Clear All Goals?",
+                confirm_clear_all_msg: "Are you sure you want to remove all goals from your bucket list? This action cannot be undone.",
+                cancel_btn: "Cancel",
+                confirm_btn: "Yes, Clear All",
                 dir: "ltr"
             },
             id: {
@@ -261,14 +301,18 @@
                 username_placeholder: "Masukkan nama pengguna",
                 password_label: "Kata Sandi",
                 password_placeholder: "Masukkan kata sandi",
+                show_password: "Tampilkan kata sandi",
+                hide_password: "Sembunyikan kata sandi",
                 login_btn: "Masuk",
                 register_btn: "Daftar Akun",
                 add_placeholder: "Tambah impian baru...",
                 add_btn: "Tambah Impian",
+                progress_title: "Progres Impian",
                 filter_all: "Semua",
                 filter_active: "Aktif",
                 filter_completed: "Selesai",
                 clear_completed: "Hapus Selesai",
+                clear_all: "Hapus Semua",
                 items_left_singular: "impian tersisa",
                 items_left_plural: "impian tersisa",
                 empty_title: "Daftar impian Anda kosong",
@@ -281,6 +325,10 @@
                 err_invalid_login: "Nama pengguna atau kata sandi salah.",
                 copyright: "© 2026 BucketList.io. Hak cipta dilindungi.",
                 lang_system: "🌐 Sistem (Otomatis)",
+                confirm_clear_all_title: "Hapus Semua Impian?",
+                confirm_clear_all_msg: "Apakah Anda yakin ingin menghapus semua impian dalam daftar ini? Tindakan ini tidak dapat dibatalkan.",
+                cancel_btn: "Batal",
+                confirm_btn: "Ya, Hapus Semua",
                 dir: "ltr"
             },
             es: {
@@ -292,14 +340,18 @@
                 username_placeholder: "Ingresa tu usuario",
                 password_label: "Contraseña",
                 password_placeholder: "Ingresa tu contraseña",
+                show_password: "Mostrar contraseña",
+                hide_password: "Ocultar contraseña",
                 login_btn: "Iniciar Sesión",
                 register_btn: "Registrarse",
                 add_placeholder: "Añade una nueva meta...",
                 add_btn: "Añadir Meta",
+                progress_title: "Progreso de Metas",
                 filter_all: "Todos",
                 filter_active: "Activos",
                 filter_completed: "Completados",
                 clear_completed: "Limpiar Completados",
+                clear_all: "Borrar Todo",
                 items_left_singular: "meta pendiente",
                 items_left_plural: "metas pendientes",
                 empty_title: "Tu lista de metas está vacía",
@@ -312,6 +364,10 @@
                 err_invalid_login: "Usuario o contraseña incorrectos.",
                 copyright: "© 2026 BucketList.io. Todos los derechos reservados.",
                 lang_system: "🌐 Sistema (Auto)",
+                confirm_clear_all_title: "¿Borrar todas las metas?",
+                confirm_clear_all_msg: "¿Estás seguro de que quieres eliminar todas las metas? Esta acción no se puede deshacer.",
+                cancel_btn: "Cancelar",
+                confirm_btn: "Sí, Borrar Todo",
                 dir: "ltr"
             },
             fr: {
@@ -323,14 +379,18 @@
                 username_placeholder: "Entrez votre nom",
                 password_label: "Mot de passe",
                 password_placeholder: "Entrez votre mot de passe",
+                show_password: "Afficher le mot de passe",
+                hide_password: "Masquer le mot de passe",
                 login_btn: "Se connecter",
                 register_btn: "S'inscrire",
                 add_placeholder: "Ajouter un nouvel objectif...",
                 add_btn: "Ajouter",
+                progress_title: "Progression",
                 filter_all: "Tous",
                 filter_active: "Actifs",
                 filter_completed: "Terminés",
                 clear_completed: "Effacer les terminés",
+                clear_all: "Tout effacer",
                 items_left_singular: "objectif restant",
                 items_left_plural: "objectifs restants",
                 empty_title: "Votre liste d'objectifs est vide",
@@ -343,6 +403,10 @@
                 err_invalid_login: "Identifiants incorrects.",
                 copyright: "© 2026 BucketList.io. Tous droits réservés.",
                 lang_system: "🌐 Système (Auto)",
+                confirm_clear_all_title: "Tout effacer ?",
+                confirm_clear_all_msg: "Êtes-vous sûr de vouloir supprimer tous les objectifs ? Cette action est irréversible.",
+                cancel_btn: "Annuler",
+                confirm_btn: "Oui, Tout effacer",
                 dir: "ltr"
             },
             de: {
@@ -354,14 +418,18 @@
                 username_placeholder: "Benutzername eingeben",
                 password_label: "Passwort",
                 password_placeholder: "Passwort eingeben",
+                show_password: "Passwort anzeigen",
+                hide_password: "Passwort verbergen",
                 login_btn: "Anmelden",
                 register_btn: "Registrieren",
                 add_placeholder: "Neues Lebensziel hinzufügen...",
                 add_btn: "Hinzufügen",
+                progress_title: "Fortschritt",
                 filter_all: "Alle",
                 filter_active: "Aktiv",
                 filter_completed: "Erledigt",
                 clear_completed: "Erledigte löschen",
+                clear_all: "Alles löschen",
                 items_left_singular: "Ziel übrig",
                 items_left_plural: "Ziele übrig",
                 empty_title: "Ihre Liste ist leer",
@@ -374,6 +442,10 @@
                 err_invalid_login: "Ungültiger Benutzername oder Passwort.",
                 copyright: "© 2026 BucketList.io. Alle Rechte vorbehalten.",
                 lang_system: "🌐 System (Auto)",
+                confirm_clear_all_title: "Alles löschen?",
+                confirm_clear_all_msg: "Sind Sie sicher, dass Sie alle Ziele löschen möchten? Dies kann nicht rückgängig gemacht werden.",
+                cancel_btn: "Abbrechen",
+                confirm_btn: "Ja, Alles löschen",
                 dir: "ltr"
             },
             ru: {
@@ -385,14 +457,18 @@
                 username_placeholder: "Введите имя пользователя",
                 password_label: "Пароль",
                 password_placeholder: "Введите пароль",
+                show_password: "Показать пароль",
+                hide_password: "Скрыть пароль",
                 login_btn: "Войти",
                 register_btn: "Зарегистрироваться",
                 add_placeholder: "Добавить новую цель...",
                 add_btn: "Добавить",
+                progress_title: "Прогресс",
                 filter_all: "Все",
                 filter_active: "Активные",
                 filter_completed: "Завершенные",
                 clear_completed: "Очистить завершенные",
+                clear_all: "Очистить все",
                 items_left_singular: "цель осталась",
                 items_left_plural: "целей осталось",
                 empty_title: "Ваш список целей пуст",
@@ -405,6 +481,10 @@
                 err_invalid_login: "Неверное имя пользователя или пароль.",
                 copyright: "© 2026 BucketList.io. Все права защищены.",
                 lang_system: "🌐 Система (Авто)",
+                confirm_clear_all_title: "Очистить все цели?",
+                confirm_clear_all_msg: "Вы уверены, что хотите удалить все цели из списка? Это действие нельзя отменить.",
+                cancel_btn: "Отмена",
+                confirm_btn: "Да, очистить все",
                 dir: "ltr"
             },
             zh: {
@@ -416,14 +496,18 @@
                 username_placeholder: "请输入用户名",
                 password_label: "密码",
                 password_placeholder: "请输入密码",
+                show_password: "显示密码",
+                hide_password: "隐藏密码",
                 login_btn: "登录",
                 register_btn: "注册",
                 add_placeholder: "添加新的人生目标...",
                 add_btn: "添加",
+                progress_title: "目标完成进度",
                 filter_all: "全部",
                 filter_active: "未完成",
                 filter_completed: "已完成",
                 clear_completed: "清除已完成",
+                clear_all: "清空所有",
                 items_left_singular: "项待完成",
                 items_left_plural: "项待完成",
                 empty_title: "您的愿望清单是空的",
@@ -436,6 +520,10 @@
                 err_invalid_login: "用户名或密码错误。",
                 copyright: "© 2026 BucketList.io. 保留所有权利。",
                 lang_system: "🌐 系统语言 (自动)",
+                confirm_clear_all_title: "清空所有目标？",
+                confirm_clear_all_msg: "确定要从愿望清单中删除所有目标吗？此操作无法撤销。",
+                cancel_btn: "取消",
+                confirm_btn: "确定清空",
                 dir: "ltr"
             },
             ja: {
@@ -447,14 +535,18 @@
                 username_placeholder: "ユーザー名を入力",
                 password_label: "パスワード",
                 password_placeholder: "パスワードを入力",
+                show_password: "パスワードを表示",
+                hide_password: "パスワードを非表示",
                 login_btn: "ログイン",
                 register_btn: "登録する",
                 add_placeholder: "新しい目標を追加...",
                 add_btn: "追加",
+                progress_title: "進捗状況",
                 filter_all: "すべて",
                 filter_active: "未完了",
                 filter_completed: "完了済み",
                 clear_completed: "完了分を削除",
+                clear_all: "すべて消去",
                 items_left_singular: "個の未完了",
                 items_left_plural: "個の未完了",
                 empty_title: "バケットリストは空です",
@@ -467,6 +559,10 @@
                 err_invalid_login: "ユーザー名またはパスワードが無効です。",
                 copyright: "© 2026 BucketList.io. All rights reserved.",
                 lang_system: "🌐 システム言語 (自動)",
+                confirm_clear_all_title: "すべての目標を消去しますか？",
+                confirm_clear_all_msg: "リスト内のすべての目標を削除してもよろしいですか？この操作は取り消せません。",
+                cancel_btn: "キャンセル",
+                confirm_btn: "すべて消去する",
                 dir: "ltr"
             },
             ar: {
@@ -478,14 +574,18 @@
                 username_placeholder: "أدخل اسم المستخدم",
                 password_label: "كلمة المرور",
                 password_placeholder: "أدخل كلمة المرور",
+                show_password: "إظهار كلمة المرور",
+                hide_password: "إخفاء كلمة المرور",
                 login_btn: "تسجيل الدخول",
                 register_btn: "إنشاء حساب",
                 add_placeholder: "أضف هدفاً جديداً لقائمتك...",
                 add_btn: "إضافة",
+                progress_title: "نسبة الإنجاز",
                 filter_all: "الكل",
                 filter_active: "نشط",
                 filter_completed: "مكتمل",
                 clear_completed: "مسح المكتمل",
+                clear_all: "مسح الكل",
                 items_left_singular: "هدف متبقي",
                 items_left_plural: "أهداف متبقية",
                 empty_title: "قائمة أهدافك فارغة",
@@ -498,6 +598,10 @@
                 err_invalid_login: "اسم المستخدم أو كلمة المرور غير صحيحة.",
                 copyright: "© 2026 BucketList.io. جميع الحقوق محفوظة.",
                 lang_system: "🌐 نظام الجهاز (تلقائي)",
+                confirm_clear_all_title: "مسح جميع الأهداف؟",
+                confirm_clear_all_msg: "هل أنت تأكد من إزالة جميع الأهداف من قائمتك؟ لا يمكن التراجع عن هذا الإجراء.",
+                cancel_btn: "إلغاء",
+                confirm_btn: "نعم، مسح الكل",
                 dir: "rtl"
             }
         };
@@ -521,6 +625,8 @@
         const authAlert = document.getElementById('authAlert');
         const authUsername = document.getElementById('authUsername');
         const authPassword = document.getElementById('authPassword');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const togglePasswordIcon = document.getElementById('togglePasswordIcon');
 
         const addGoalForm = document.getElementById('addGoalForm');
         const goalInput = document.getElementById('goalInput');
@@ -528,6 +634,13 @@
         const emptyState = document.getElementById('emptyState');
         const itemCounter = document.getElementById('itemCounter');
         const clearCompletedBtn = document.getElementById('clearCompletedBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        const confirmModal = document.getElementById('confirmModal');
+        const cancelClearAllBtn = document.getElementById('cancelClearAllBtn');
+        const confirmClearAllBtn = document.getElementById('confirmClearAllBtn');
 
         const filterAll = document.getElementById('filterAll');
         const filterActive = document.getElementById('filterActive');
@@ -568,6 +681,8 @@
 
             document.documentElement.dir = dict.dir || 'ltr';
 
+            updatePasswordToggleTooltip();
+
             if (currentUser) {
                 renderItems();
             }
@@ -579,6 +694,25 @@
             localStorage.setItem('bucket_lang_pref', selectedLangSetting);
             applyTranslations();
         });
+
+        togglePasswordBtn.addEventListener('click', () => {
+            const isPassword = authPassword.type === 'password';
+            authPassword.type = isPassword ? 'text' : 'password';
+            
+            togglePasswordIcon.className = isPassword 
+                ? 'fa-solid fa-eye-slash text-sm text-blue-400 transition-transform duration-200 hover:scale-110' 
+                : 'fa-solid fa-eye text-sm text-slate-500 transition-transform duration-200 hover:scale-110';
+            
+            updatePasswordToggleTooltip();
+        });
+
+        function updatePasswordToggleTooltip() {
+            const dict = getActiveDict();
+            const isShowingText = authPassword.type === 'text';
+            const label = isShowingText ? dict.hide_password : dict.show_password;
+            togglePasswordBtn.setAttribute('title', label);
+            togglePasswordBtn.setAttribute('aria-label', label);
+        }
 
         function initApp() {
             applyTranslations();
@@ -741,6 +875,26 @@
             renderItems();
         });
 
+        clearAllBtn.addEventListener('click', () => {
+            confirmModal.classList.remove('hidden');
+        });
+
+        cancelClearAllBtn.addEventListener('click', () => {
+            confirmModal.classList.add('hidden');
+        });
+
+        confirmModal.addEventListener('click', (e) => {
+            if (e.target === confirmModal) {
+                confirmModal.classList.add('hidden');
+            }
+        });
+
+        confirmClearAllBtn.addEventListener('click', () => {
+            saveStoredItems([]);
+            confirmModal.classList.add('hidden');
+            renderItems();
+        });
+
         function setFilter(filter) {
             currentFilter = filter;
             [filterAll, filterActive, filterCompleted].forEach(btn => {
@@ -761,7 +915,13 @@
         function renderItems() {
             const dict = getActiveDict();
             const items = getStoredItems();
+            const totalCount = items.length;
             const activeCount = items.filter(i => !i.completed).length;
+            const completedCount = totalCount - activeCount;
+
+            const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+            progressBar.style.width = `${percentage}%`;
+            progressText.textContent = `${percentage}%`;
             
             const countLabel = activeCount === 1 ? dict.items_left_singular : dict.items_left_plural;
             itemCounter.textContent = `${activeCount} ${countLabel}`;
