@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BucketList.io - Modern Goal Tracking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020617;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        @keyframes slideDownFade {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes checkBounce {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-slide-down {
+            animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-pop-in {
+            animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-check {
+            animation: checkBounce 0.2s ease-out forwards;
+        }
+
+        .item-deleting {
+            opacity: 0 !important;
+            transform: translateX(16px) !important;
+            transition: all 0.2s ease-out !important;
+        }
+
+        input, button, select {
+            font-size: 16px;
+        }
+        @media (min-width: 640px) {
+            input, button, select {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white antialiased">
+
+    <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-50 transition-colors duration-200">
+        <div class="max-w-4xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-3">
+            <span class="text-lg sm:text-xl font-bold tracking-tight text-white select-none shrink-0">BucketList<span class="text-blue-500">.io</span></span>
+            
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="relative">
+                    <select id="langSelect" class="bg-slate-900 border border-slate-800 text-slate-200 text-xs font-medium rounded-lg px-2.5 py-2 min-h-[40px] outline-none focus:border-blue-500 transition-all duration-200 cursor-pointer pr-7 appearance-none">
+                        <option value="auto" data-i18n="lang_system">🌐 System (Auto)</option>
+                        <option value="en">English (EN)</option>
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                        <option value="ru">Русский</option>
+                        <option value="zh">中文</option>
+                        <option value="ja">日本語</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 pointer-events-none"></i>
+                </div>
+
+                <div id="navUserSection" class="hidden items-center gap-2 sm:gap-3">
+                    <div class="hidden sm:flex items-center gap-2 bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 min-h-[40px]">
+                        <i class="fa-solid fa-user-circle text-blue-500 text-sm"></i>
+                        <span id="navUsername" class="text-xs font-semibold text-slate-200 max-w-[100px] truncate"></span>
+                    </div>
+                    <button id="logoutBtn" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white px-3 py-2 min-h-[40px] min-w-[40px] rounded-lg font-medium border border-slate-800 transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 text-xs">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span data-i18n="logout" class="hidden sm:inline">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-10 flex flex-col justify-center">
+        
+        <div id="authView" class="w-full max-w-md mx-auto animate-pop-in">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 sm:p-8 shadow-2xl">
+                <div class="text-center mb-6">
+                    <h1 data-i18n="welcome_title" class="text-xl sm:text-2xl font-bold text-white mb-1.5">Welcome to BucketList.io</h1>
+                    <p data-i18n="welcome_sub" class="text-slate-400 text-xs sm:text-sm">Organize and conquer your life goals.</p>
+                </div>
+
+                <div class="flex border-b border-slate-800 mb-6">
+                    <button id="tabLoginBtn" type="button" data-i18n="tab_login" class="flex-1 py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-blue-600 text-blue-500 transition-all duration-200 min-h-[44px]">Log In</button>
+                    <button id="tabRegisterBtn" type="button" data-i18n="tab_register" class="flex-1 py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all duration-200 min-h-[44px]">Register</button>
+                </div>
+
+                <div id="authAlert" class="hidden mb-4 p-3 rounded-lg text-xs font-medium border"></div>
+
+                <form id="authForm" class="space-y-4">
+                    <div>
+                        <label data-i18n="username_label" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Username</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="text" id="authUsername" required placeholder="Enter username" data-i18n-placeholder="username_placeholder" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg pl-10 pr-4 min-h-[44px] text-slate-100 placeholder-slate-600 outline-none transition-all duration-200">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label data-i18n="password_label" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="password" id="authPassword" required placeholder="Enter password" data-i18n-placeholder="password_placeholder" class="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-lg pl-10 pr-4 min-h-[44px] text-slate-100 placeholder-slate-600 outline-none transition-all duration-200">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white font-medium min-h-[44px] rounded-lg transition-all duration-200 mt-2 flex items-center justify-center gap-2 shadow-lg shadow-blue-600/10 text-xs sm:text-sm">
+                        <span data-i18n="login_btn">Log In</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="appView" class="hidden w-full max-w-2xl mx-auto animate-pop-in">
+            <div class="mb-5">
+                <form id="addGoalForm" class="flex flex-col sm:flex-row gap-2.5">
+                    <input type="text" id="goalInput" placeholder="Add a new bucket list goal..." data-i18n-placeholder="add_placeholder" class="flex-1 bg-slate-900 border border-slate-800 focus:border-blue-500 text-slate-100 placeholder-slate-500 px-4 min-h-[48px] rounded-xl outline-none transition-all duration-200">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white font-medium px-6 min-h-[48px] rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shrink-0 shadow-lg shadow-blue-600/10 text-xs sm:text-sm">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span data-i18n="add_btn">Add Goal</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                <div class="p-3.5 sm:p-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-sm">
+                    <div id="itemCounter" class="text-slate-400 text-xs font-semibold uppercase tracking-wider">0 items left</div>
+                    <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800/80 w-full sm:w-auto justify-center sm:justify-start">
+                        <button id="filterAll" type="button" data-i18n="filter_all" class="filter-btn flex-1 sm:flex-none px-3.5 py-1.5 min-h-[36px] rounded-md text-xs font-medium bg-blue-600 text-white transition-all duration-200">All</button>
+                        <button id="filterActive" type="button" data-i18n="filter_active" class="filter-btn flex-1 sm:flex-none px-3.5 py-1.5 min-h-[36px] rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 transition-all duration-200">Active</button>
+                        <button id="filterCompleted" type="button" data-i18n="filter_completed" class="filter-btn flex-1 sm:flex-none px-3.5 py-1.5 min-h-[36px] rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 transition-all duration-200">Completed</button>
+                    </div>
+                </div>
+
+                <ul id="bucketList" class="divide-y divide-slate-800/60 max-h-[480px] overflow-y-auto">
+                </ul>
+
+                <div id="emptyState" class="p-8 sm:p-12 text-center">
+                    <i class="fa-solid fa-list-check text-3xl sm:text-4xl text-slate-700 mb-3"></i>
+                    <p data-i18n="empty_title" class="text-slate-400 font-medium text-sm sm:text-base">Your bucket list is empty</p>
+                    <p data-i18n="empty_sub" class="text-slate-600 text-xs mt-1">Start planning your dream experiences above!</p>
+                </div>
+
+                <div class="p-3 border-t border-slate-800/60 bg-slate-950/40 flex justify-end">
+                    <button id="clearCompletedBtn" type="button" class="text-xs text-slate-500 hover:text-red-400 font-medium transition-colors duration-200 flex items-center gap-1.5 px-3 py-2 min-h-[36px] rounded-md hover:bg-slate-800/50">
+                        <i class="fa-solid fa-trash-can text-[11px]"></i>
+                        <span data-i18n="clear_completed">Clear Completed</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-950 border-t border-slate-900 py-5 text-xs text-slate-500 transition-colors duration-200">
+        <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <p data-i18n="copyright">&copy; 2026 BucketList.io. All rights reserved.</p>
+            <div class="flex items-center gap-5">
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors duration-200 flex items-center gap-1.5 py-1 min-h-[36px]">
+                    <i class="fa-brands fa-github text-sm"></i>
+                    <span data-i18n="github_link">View my GitHub</span>
+                </a>
+                <a href="https://saweria.co" target="_blank" rel="noopener noreferrer" class="hover:text-blue-400 transition-colors duration-200 flex items-center gap-1.5 py-1 min-h-[36px]">
+                    <i class="fa-solid fa-heart text-red-500 text-xs"></i>
+                    <span data-i18n="saweria_link">Support me via Saweria.co</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const translations = {
+            en: {
+                welcome_title: "Welcome to BucketList.io",
+                welcome_sub: "Organize and conquer your life goals.",
+                tab_login: "Log In",
+                tab_register: "Register",
+                username_label: "Username",
+                username_placeholder: "Enter username",
+                password_label: "Password",
+                password_placeholder: "Enter password",
+                login_btn: "Log In",
+                register_btn: "Register",
+                add_placeholder: "Add a new bucket list goal...",
+                add_btn: "Add Goal",
+                filter_all: "All",
+                filter_active: "Active",
+                filter_completed: "Completed",
+                clear_completed: "Clear Completed",
+                items_left_singular: "item left",
+                items_left_plural: "items left",
+                empty_title: "Your bucket list is empty",
+                empty_sub: "Start planning your dream experiences above!",
+                logout: "Logout",
+                github_link: "View my GitHub",
+                saweria_link: "Support me via Saweria.co",
+                err_fill_fields: "Please fill in all fields.",
+                err_user_exists: "Username already exists. Please login.",
+                err_invalid_login: "Invalid username or password.",
+                copyright: "© 2026 BucketList.io. All rights reserved.",
+                lang_system: "🌐 System (Auto)",
+                dir: "ltr"
+            },
+            id: {
+                welcome_title: "Selamat Datang di BucketList.io",
+                welcome_sub: "Organisasikan dan wujudkan impian hidup Anda.",
+                tab_login: "Masuk",
+                tab_register: "Daftar",
+                username_label: "Nama Pengguna",
+                username_placeholder: "Masukkan nama pengguna",
+                password_label: "Kata Sandi",
+                password_placeholder: "Masukkan kata sandi",
+                login_btn: "Masuk",
+                register_btn: "Daftar Akun",
+                add_placeholder: "Tambah impian baru...",
+                add_btn: "Tambah Impian",
+                filter_all: "Semua",
+                filter_active: "Aktif",
+                filter_completed: "Selesai",
+                clear_completed: "Hapus Selesai",
+                items_left_singular: "impian tersisa",
+                items_left_plural: "impian tersisa",
+                empty_title: "Daftar impian Anda kosong",
+                empty_sub: "Mulai rencanakan pengalaman impian Anda di atas!",
+                logout: "Keluar",
+                github_link: "Lihat GitHub saya",
+                saweria_link: "Dukung via Saweria.co",
+                err_fill_fields: "Harap isi semua kolom.",
+                err_user_exists: "Nama pengguna sudah ada. Silakan masuk.",
+                err_invalid_login: "Nama pengguna atau kata sandi salah.",
+                copyright: "© 2026 BucketList.io. Hak cipta dilindungi.",
+                lang_system: "🌐 Sistem (Otomatis)",
+                dir: "ltr"
+            },
+            es: {
+                welcome_title: "Bienvenido a BucketList.io",
+                welcome_sub: "Organiza y conquista tus metas de vida.",
+                tab_login: "Iniciar Sesión",
+                tab_register: "Registrarse",
+                username_label: "Usuario",
+                username_placeholder: "Ingresa tu usuario",
+                password_label: "Contraseña",
+                password_placeholder: "Ingresa tu contraseña",
+                login_btn: "Iniciar Sesión",
+                register_btn: "Registrarse",
+                add_placeholder: "Añade una nueva meta...",
+                add_btn: "Añadir Meta",
+                filter_all: "Todos",
+                filter_active: "Activos",
+                filter_completed: "Completados",
+                clear_completed: "Limpiar Completados",
+                items_left_singular: "meta pendiente",
+                items_left_plural: "metas pendientes",
+                empty_title: "Tu lista de metas está vacía",
+                empty_sub: "¡Empieza a planificar tus sueños arriba!",
+                logout: "Salir",
+                github_link: "Ver mi GitHub",
+                saweria_link: "Apoyarme en Saweria.co",
+                err_fill_fields: "Por favor completa todos los campos.",
+                err_user_exists: "El usuario ya existe. Por favor inicia sesión.",
+                err_invalid_login: "Usuario o contraseña incorrectos.",
+                copyright: "© 2026 BucketList.io. Todos los derechos reservados.",
+                lang_system: "🌐 Sistema (Auto)",
+                dir: "ltr"
+            },
+            fr: {
+                welcome_title: "Bienvenue sur BucketList.io",
+                welcome_sub: "Organisez et réalisez vos objectifs de vie.",
+                tab_login: "Connexion",
+                tab_register: "S'inscrire",
+                username_label: "Nom d'utilisateur",
+                username_placeholder: "Entrez votre nom",
+                password_label: "Mot de passe",
+                password_placeholder: "Entrez votre mot de passe",
+                login_btn: "Se connecter",
+                register_btn: "S'inscrire",
+                add_placeholder: "Ajouter un nouvel objectif...",
+                add_btn: "Ajouter",
+                filter_all: "Tous",
+                filter_active: "Actifs",
+                filter_completed: "Terminés",
+                clear_completed: "Effacer les terminés",
+                items_left_singular: "objectif restant",
+                items_left_plural: "objectifs restants",
+                empty_title: "Votre liste d'objectifs est vide",
+                empty_sub: "Commencez à planifier vos rêves ci-dessus !",
+                logout: "Déconnexion",
+                github_link: "Voir mon GitHub",
+                saweria_link: "Soutenir via Saweria.co",
+                err_fill_fields: "Veuillez remplir tous les champs.",
+                err_user_exists: "Ce nom d'utilisateur existe déjà.",
+                err_invalid_login: "Identifiants incorrects.",
+                copyright: "© 2026 BucketList.io. Tous droits réservés.",
+                lang_system: "🌐 Système (Auto)",
+                dir: "ltr"
+            },
+            de: {
+                welcome_title: "Willkommen bei BucketList.io",
+                welcome_sub: "Organisieren und erreichen Sie Ihre Lebensziele.",
+                tab_login: "Anmelden",
+                tab_register: "Registrieren",
+                username_label: "Benutzername",
+                username_placeholder: "Benutzername eingeben",
+                password_label: "Passwort",
+                password_placeholder: "Passwort eingeben",
+                login_btn: "Anmelden",
+                register_btn: "Registrieren",
+                add_placeholder: "Neues Lebensziel hinzufügen...",
+                add_btn: "Hinzufügen",
+                filter_all: "Alle",
+                filter_active: "Aktiv",
+                filter_completed: "Erledigt",
+                clear_completed: "Erledigte löschen",
+                items_left_singular: "Ziel übrig",
+                items_left_plural: "Ziele übrig",
+                empty_title: "Ihre Liste ist leer",
+                empty_sub: "Beginnen Sie oben mit der Planung Ihrer Träume!",
+                logout: "Abmelden",
+                github_link: "Mein GitHub ansehen",
+                saweria_link: "Unterstützen via Saweria.co",
+                err_fill_fields: "Bitte füllen Sie alle Felder aus.",
+                err_user_exists: "Benutzername existiert bereits.",
+                err_invalid_login: "Ungültiger Benutzername oder Passwort.",
+                copyright: "© 2026 BucketList.io. Alle Rechte vorbehalten.",
+                lang_system: "🌐 System (Auto)",
+                dir: "ltr"
+            },
+            ru: {
+                welcome_title: "Добро пожаловать в BucketList.io",
+                welcome_sub: "Организуйте и достигайте своих целей.",
+                tab_login: "Войти",
+                tab_register: "Регистрация",
+                username_label: "Имя пользователя",
+                username_placeholder: "Введите имя пользователя",
+                password_label: "Пароль",
+                password_placeholder: "Введите пароль",
+                login_btn: "Войти",
+                register_btn: "Зарегистрироваться",
+                add_placeholder: "Добавить новую цель...",
+                add_btn: "Добавить",
+                filter_all: "Все",
+                filter_active: "Активные",
+                filter_completed: "Завершенные",
+                clear_completed: "Очистить завершенные",
+                items_left_singular: "цель осталась",
+                items_left_plural: "целей осталось",
+                empty_title: "Ваш список целей пуст",
+                empty_sub: "Начните планировать свои мечты выше!",
+                logout: "Выйти",
+                github_link: "Мой GitHub",
+                saweria_link: "Поддержать на Saweria.co",
+                err_fill_fields: "Пожалуйста, заполните все поля.",
+                err_user_exists: "Имя пользователя уже существует.",
+                err_invalid_login: "Неверное имя пользователя или пароль.",
+                copyright: "© 2026 BucketList.io. Все права защищены.",
+                lang_system: "🌐 Система (Авто)",
+                dir: "ltr"
+            },
+            zh: {
+                welcome_title: "欢迎使用 BucketList.io",
+                welcome_sub: "规划并实现您的人生目标。",
+                tab_login: "登录",
+                tab_register: "注册",
+                username_label: "用户名",
+                username_placeholder: "请输入用户名",
+                password_label: "密码",
+                password_placeholder: "请输入密码",
+                login_btn: "登录",
+                register_btn: "注册",
+                add_placeholder: "添加新的人生目标...",
+                add_btn: "添加",
+                filter_all: "全部",
+                filter_active: "未完成",
+                filter_completed: "已完成",
+                clear_completed: "清除已完成",
+                items_left_singular: "项待完成",
+                items_left_plural: "项待完成",
+                empty_title: "您的愿望清单是空的",
+                empty_sub: "在上方开始规划您的梦想吧！",
+                logout: "退出登录",
+                github_link: "查看我的 GitHub",
+                saweria_link: "通过 Saweria.co 支持我",
+                err_fill_fields: "请填写所有字段。",
+                err_user_exists: "用户名已存在，请登录。",
+                err_invalid_login: "用户名或密码错误。",
+                copyright: "© 2026 BucketList.io. 保留所有权利。",
+                lang_system: "🌐 系统语言 (自动)",
+                dir: "ltr"
+            },
+            ja: {
+                welcome_title: "BucketList.io へようこそ",
+                welcome_sub: "人生の目標を整理し、達成しましょう。",
+                tab_login: "ログイン",
+                tab_register: "新規登録",
+                username_label: "ユーザー名",
+                username_placeholder: "ユーザー名を入力",
+                password_label: "パスワード",
+                password_placeholder: "パスワードを入力",
+                login_btn: "ログイン",
+                register_btn: "登録する",
+                add_placeholder: "新しい目標を追加...",
+                add_btn: "追加",
+                filter_all: "すべて",
+                filter_active: "未完了",
+                filter_completed: "完了済み",
+                clear_completed: "完了分を削除",
+                items_left_singular: "個の未完了",
+                items_left_plural: "個の未完了",
+                empty_title: "バケットリストは空です",
+                empty_sub: "上の入力欄から夢の計画を始めましょう！",
+                logout: "ログアウト",
+                github_link: "GitHubを見る",
+                saweria_link: "Saweria.coで応援する",
+                err_fill_fields: "すべての項目を入力してください。",
+                err_user_exists: "ユーザー名が既に存在します。",
+                err_invalid_login: "ユーザー名またはパスワードが無効です。",
+                copyright: "© 2026 BucketList.io. All rights reserved.",
+                lang_system: "🌐 システム言語 (自動)",
+                dir: "ltr"
+            },
+            ar: {
+                welcome_title: "مرحباً بك في BucketList.io",
+                welcome_sub: "نظّم وحقق أهداف حياتك.",
+                tab_login: "تسجيل الدخول",
+                tab_register: "إنشاء حساب",
+                username_label: "اسم المستخدم",
+                username_placeholder: "أدخل اسم المستخدم",
+                password_label: "كلمة المرور",
+                password_placeholder: "أدخل كلمة المرور",
+                login_btn: "تسجيل الدخول",
+                register_btn: "إنشاء حساب",
+                add_placeholder: "أضف هدفاً جديداً لقائمتك...",
+                add_btn: "إضافة",
+                filter_all: "الكل",
+                filter_active: "نشط",
+                filter_completed: "مكتمل",
+                clear_completed: "مسح المكتمل",
+                items_left_singular: "هدف متبقي",
+                items_left_plural: "أهداف متبقية",
+                empty_title: "قائمة أهدافك فارغة",
+                empty_sub: "ابدأ بتخطيط أحلامك من الأعلى!",
+                logout: "تسجيل الخروج",
+                github_link: "عرض GitHub الخاص بي",
+                saweria_link: "دعمني عبر Saweria.co",
+                err_fill_fields: "يرجى ملء جميع الحقول.",
+                err_user_exists: "اسم المستخدم موجود بالفعل.",
+                err_invalid_login: "اسم المستخدم أو كلمة المرور غير صحيحة.",
+                copyright: "© 2026 BucketList.io. جميع الحقوق محفوظة.",
+                lang_system: "🌐 نظام الجهاز (تلقائي)",
+                dir: "rtl"
+            }
+        };
+
+        let users = JSON.parse(localStorage.getItem('bucket_users') || '{}');
+        let currentUser = localStorage.getItem('bucket_current_user') || null;
+        let selectedLangSetting = localStorage.getItem('bucket_lang_pref') || 'auto';
+        let authMode = 'login';
+        let currentFilter = 'all';
+
+        const langSelect = document.getElementById('langSelect');
+        const authView = document.getElementById('authView');
+        const appView = document.getElementById('appView');
+        const navUserSection = document.getElementById('navUserSection');
+        const navUsername = document.getElementById('navUsername');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const authForm = document.getElementById('authForm');
+        const tabLoginBtn = document.getElementById('tabLoginBtn');
+        const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const authAlert = document.getElementById('authAlert');
+        const authUsername = document.getElementById('authUsername');
+        const authPassword = document.getElementById('authPassword');
+
+        const addGoalForm = document.getElementById('addGoalForm');
+        const goalInput = document.getElementById('goalInput');
+        const bucketList = document.getElementById('bucketList');
+        const emptyState = document.getElementById('emptyState');
+        const itemCounter = document.getElementById('itemCounter');
+        const clearCompletedBtn = document.getElementById('clearCompletedBtn');
+
+        const filterAll = document.getElementById('filterAll');
+        const filterActive = document.getElementById('filterActive');
+        const filterCompleted = document.getElementById('filterCompleted');
+
+        function getDetectedLanguage() {
+            const browserLocales = navigator.languages || [navigator.language || 'en'];
+            for (let locale of browserLocales) {
+                const code = locale.slice(0, 2).toLowerCase();
+                if (translations[code]) {
+                    return code;
+                }
+            }
+            return 'en';
+        }
+
+        function getActiveDict() {
+            const code = (selectedLangSetting === 'auto') ? getDetectedLanguage() : selectedLangSetting;
+            return translations[code] || translations.en;
+        }
+
+        function applyTranslations() {
+            const dict = getActiveDict();
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.textContent = dict[key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (dict[key]) {
+                    el.placeholder = dict[key];
+                }
+            });
+
+            document.documentElement.dir = dict.dir || 'ltr';
+
+            if (currentUser) {
+                renderItems();
+            }
+        }
+
+        langSelect.value = selectedLangSetting;
+        langSelect.addEventListener('change', (e) => {
+            selectedLangSetting = e.target.value;
+            localStorage.setItem('bucket_lang_pref', selectedLangSetting);
+            applyTranslations();
+        });
+
+        function initApp() {
+            applyTranslations();
+            if (currentUser) {
+                showAppView();
+            } else {
+                showAuthView();
+            }
+        }
+
+        function setAuthMode(mode) {
+            authMode = mode;
+            authAlert.classList.add('hidden');
+            const dict = getActiveDict();
+
+            if (mode === 'login') {
+                tabLoginBtn.className = 'flex-1 py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-blue-600 text-blue-500 transition-all duration-200 min-h-[44px]';
+                tabRegisterBtn.className = 'flex-1 py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all duration-200 min-h-[44px]';
+                authSubmitBtn.querySelector('span').textContent = dict.login_btn;
+            } else {
+                tabRegisterBtn.className = 'flex-1 py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-blue-600 text-blue-500 transition-all duration-200 min-h-[44px]';
+                tabLoginBtn.className = 'flex-1 py-3 text-center text-xs sm:text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all duration-200 min-h-[44px]';
+                authSubmitBtn.querySelector('span').textContent = dict.register_btn;
+            }
+        }
+
+        tabLoginBtn.addEventListener('click', () => setAuthMode('login'));
+        tabRegisterBtn.addEventListener('click', () => setAuthMode('register'));
+
+        function showAlert(msg, isSuccess = false) {
+            authAlert.textContent = msg;
+            authAlert.classList.remove('hidden', 'bg-red-950/60', 'border-red-800', 'text-red-400', 'bg-emerald-950/60', 'border-emerald-800', 'text-emerald-400');
+            if (isSuccess) {
+                authAlert.classList.add('bg-emerald-950/60', 'border-emerald-800', 'text-emerald-400');
+            } else {
+                authAlert.classList.add('bg-red-950/60', 'border-red-800', 'text-red-400');
+            }
+        }
+
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const dict = getActiveDict();
+            const username = authUsername.value.trim().toLowerCase();
+            const password = authPassword.value.trim();
+
+            if (!username || !password) {
+                showAlert(dict.err_fill_fields);
+                return;
+            }
+
+            if (authMode === 'register') {
+                if (users[username]) {
+                    showAlert(dict.err_user_exists);
+                    return;
+                }
+                users[username] = password;
+                localStorage.setItem('bucket_users', JSON.stringify(users));
+                currentUser = username;
+                localStorage.setItem('bucket_current_user', currentUser);
+                authUsername.value = '';
+                authPassword.value = '';
+                showAppView();
+            } else {
+                if (!users[username] || users[username] !== password) {
+                    showAlert(dict.err_invalid_login);
+                    return;
+                }
+                currentUser = username;
+                localStorage.setItem('bucket_current_user', currentUser);
+                authUsername.value = '';
+                authPassword.value = '';
+                showAppView();
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            currentUser = null;
+            localStorage.removeItem('bucket_current_user');
+            showAuthView();
+        });
+
+        function showAuthView() {
+            authView.classList.remove('hidden');
+            appView.classList.add('hidden');
+            navUserSection.classList.add('hidden');
+            navUserSection.classList.remove('flex');
+            setAuthMode(authMode);
+        }
+
+        function showAppView() {
+            authView.classList.add('hidden');
+            appView.classList.remove('hidden');
+            navUserSection.classList.remove('hidden');
+            navUserSection.classList.add('flex');
+            navUsername.textContent = currentUser;
+            renderItems();
+        }
+
+        function getStoredItems() {
+            if (!currentUser) return [];
+            return JSON.parse(localStorage.getItem('bucket_items_' + currentUser) || '[]');
+        }
+
+        function saveStoredItems(items) {
+            if (!currentUser) return;
+            localStorage.setItem('bucket_items_' + currentUser, JSON.stringify(items));
+        }
+
+        addGoalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = goalInput.value.trim();
+            if (!text) return;
+
+            const items = getStoredItems();
+            const newItem = {
+                id: Date.now().toString(),
+                text: text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            items.unshift(newItem);
+            saveStoredItems(items);
+            goalInput.value = '';
+            renderItems();
+        });
+
+        function toggleItem(id) {
+            const items = getStoredItems();
+            const index = items.findIndex(item => item.id === id);
+            if (index !== -1) {
+                items[index].completed = !items[index].completed;
+                saveStoredItems(items);
+                renderItems();
+            }
+        }
+
+        function deleteItem(id) {
+            const el = document.getElementById(`item-${id}`);
+            if (el) {
+                el.classList.add('item-deleting');
+                setTimeout(() => {
+                    let items = getStoredItems();
+                    items = items.filter(item => item.id !== id);
+                    saveStoredItems(items);
+                    renderItems();
+                }, 200);
+            } else {
+                let items = getStoredItems();
+                items = items.filter(item => item.id !== id);
+                saveStoredItems(items);
+                renderItems();
+            }
+        }
+
+        clearCompletedBtn.addEventListener('click', () => {
+            let items = getStoredItems();
+            items = items.filter(item => !item.completed);
+            saveStoredItems(items);
+            renderItems();
+        });
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            [filterAll, filterActive, filterCompleted].forEach(btn => {
+                btn.className = 'filter-btn flex-1 sm:flex-none px-3.5 py-1.5 min-h-[36px] rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 transition-all duration-200';
+            });
+
+            if (filter === 'all') filterAll.className = 'filter-btn flex-1 sm:flex-none px-3.5 py-1.5 min-h-[36px] rounded-md text-xs font-medium bg-blue-600 text-white transition-all duration-200';
+            if (filter === 'active') filterActive.className = 'filter-btn flex-1 sm:flex-none px-3.5 py-1.5 min-h-[36px] rounded-md text-xs font-medium bg-blue-600 text-white transition-all duration-200';
+            if (filter === 'completed') filterCompleted.className = 'filter-btn flex-1 sm:flex-none px-3.5 py-1.5 min-h-[36px] rounded-md text-xs font-medium bg-blue-600 text-white transition-all duration-200';
+
+            renderItems();
+        }
+
+        filterAll.addEventListener('click', () => setFilter('all'));
+        filterActive.addEventListener('click', () => setFilter('active'));
+        filterCompleted.addEventListener('click', () => setFilter('completed'));
+
+        function renderItems() {
+            const dict = getActiveDict();
+            const items = getStoredItems();
+            const activeCount = items.filter(i => !i.completed).length;
+            
+            const countLabel = activeCount === 1 ? dict.items_left_singular : dict.items_left_plural;
+            itemCounter.textContent = `${activeCount} ${countLabel}`;
+
+            let filteredItems = items;
+            if (currentFilter === 'active') {
+                filteredItems = items.filter(i => !i.completed);
+            } else if (currentFilter === 'completed') {
+                filteredItems = items.filter(i => i.completed);
+            }
+
+            if (filteredItems.length === 0) {
+                bucketList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                bucketList.innerHTML = filteredItems.map(item => `
+                    <li id="item-${item.id}" class="p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-800/30 transition-all duration-200 group animate-slide-down min-h-[56px]">
+                        <div class="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" onclick="toggleItem('${item.id}')">
+                            <div class="w-6 h-6 rounded-full border ${item.completed ? 'bg-blue-600 border-blue-600 text-white animate-check' : 'border-slate-600 hover:border-blue-500 text-transparent'} flex items-center justify-center transition-all duration-200 shrink-0">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </div>
+                            <span class="text-xs sm:text-sm break-words flex-1 ${item.completed ? 'line-through text-slate-500' : 'text-slate-200 font-medium'} transition-all duration-200">
+                                ${escapeHtml(item.text)}
+                            </span>
+                        </div>
+                        <button onclick="deleteItem('${item.id}')" class="text-slate-600 hover:text-red-400 p-2 rounded-lg hover:bg-slate-800 transition-all duration-200 opacity-90 sm:opacity-0 group-hover:opacity-100 min-h-[36px] min-w-[36px] flex items-center justify-center" title="Delete item">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    </li>
+                `).join('');
+            }
+        }
+
+        function escapeHtml(string) {
+            const div = document.createElement('div');
+            div.innerText = string;
+            return div.innerHTML;
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
